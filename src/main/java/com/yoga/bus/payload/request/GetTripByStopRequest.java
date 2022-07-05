@@ -1,31 +1,24 @@
 package com.yoga.bus.payload.request;
 
 public class GetTripByStopRequest {
+	private Long sourceStopid;
 
-	private Long sourceStopId;
 	private Long destStopId;
 
-	public GetTripByStopRequest() {
+	public Long getSourceStopid() {
+		return sourceStopid;
 	}
 
-	public GetTripByStopRequest(Long sourceStopId, Long destStopId) {
-		this.sourceStopId = sourceStopId;
-		this.destStopId = destStopId;
+	public void setSourceStopid(Long sourceStopid) {
+		this.sourceStopid = sourceStopid;
 	}
 
-	public void setSourceStop(Long sourceStopId) {
-		this.sourceStopId = sourceStopId;
-	}
-	
-	public void setDestStop(Long destStopId) {
-		this.destStopId = destStopId;
-	}
-
-	public Long getSourceStop() {
-		return sourceStopId;
-	}
-	
-	public Long getDestStop() {
+	public Long getDestStopId() {
 		return destStopId;
 	}
+
+	public void setDestStopId(Long destStopId) {
+		this.destStopId = destStopId;
+	}
+
 }

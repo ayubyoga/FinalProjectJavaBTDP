@@ -9,19 +9,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
 import io.swagger.annotations.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import com.yoga.bus.models.*;
 import com.yoga.bus.payload.request.*;
-import com.yoga.bus.payload.response.Response;
+import com.yoga.bus.payload.response.MessageResponse;
 import com.yoga.bus.repository.*;
 import com.yoga.bus.security.jwt.JwtUtils;
-import com.yoga.bus.service.impl.UserServiceImpl;
 
 @CrossOrigin(origins = "*", maxAge = 3600, methods = { RequestMethod.PUT, RequestMethod.POST, RequestMethod.GET })
 @RestController
@@ -44,103 +43,108 @@ public class UserController {
 	AgencyRepository agencyRepository;
 
 	@Autowired
-	UserServiceImpl userServiceImpl;
-
-	@Autowired
 	JwtUtils jwtUtils;
 
 	@PostMapping("/signup")
-	public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signupRequest) {
-
-		String email = signupRequest.getEmail();
-		String username = signupRequest.getUsername();
-		String firstName = signupRequest.getFirstName();
-		String lastName = signupRequest.getLastName();
-		String mobileNumber = signupRequest.getMobileNumber();
-		String password = signupRequest.getPassword();
-		Set<String> strRoles = signupRequest.getRole();
-
-		if (email == null || username == null || firstName == null || lastName == null || mobileNumber == null
-				|| password == null || strRoles == null || username.equals("") || email.equals("")
-				|| firstName.equals("") || lastName.equals("") || strRoles.size() == 0) {
-
-			String errorDetails = "Pastikan field tidak kosong";
-			Response errorResponse = new Response("400", "Bad Request", errorDetails);
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+	public ResponseEntity<?> registerUser(@Valid @RequestBody SignupCustomRequest signupCustomRequest) {
+		if (userRepository.existsByUsername(signupCustomRequest.getUsername())) {
+			return ResponseEntity.badRequest().body(new MessageResponse("Error: Username sudah digunakan"));
 		}
 
-		if (userRepository.existsByUsername(signupRequest.getUsername())) {
-			Response errorResponse = new Response("400", "Bad Request",
-					"Username sudah digunakan, silahkan gunakan username lain");
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+		if (userRepository.existsByEmail(signupCustomRequest.getEmail())) {
+			return ResponseEntity.badRequest().body(new MessageResponse("Error: Email sudah digunakan"));
 		}
 
-		if (userRepository.existsByEmail(signupRequest.getEmail())) {
-			Response errorResponse = new Response("400", "Bad Request",
-					"Email sudah digunakan, silahkan gunakan email lain");
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
-		}
+		User user = new User(signupCustomRequest.getFirstName(), signupCustomRequest.getLastName(),
+				signupCustomRequest.getMobileNumber(), signupCustomRequest.getUsername(),
+				signupCustomRequest.getEmail(), encoder.encode(signupCustomRequest.getPassword()));
 
-		User user = new User(signupRequest.getFirstName(), signupRequest.getLastName(), signupRequest.getMobileNumber(),
-				signupRequest.getUsername(), signupRequest.getEmail(), encoder.encode(signupRequest.getPassword()));
-
+		Set<String> strRoles = signupCustomRequest.getRole();
 		Set<Role> roles = new HashSet<>();
 
-		for (String item : strRoles) {
-			if (item.equalsIgnoreCase("user") || item.equalsIgnoreCase("role_user")) {
-				Role userRole = roleRepository.findById(1);
-				roles.add(userRole);
-			} else if (item.equalsIgnoreCase("admin") || item.equalsIgnoreCase("admin")) {
-				Role adminRole = roleRepository.findById(2);
-				roles.add(adminRole);
-			} else {
-				Response errorResponse = new Response("400", "Bad Request", "Role tidak ada");
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
-			}
+		if (strRoles == null) {
+			Role userRole = roleRepository.findByName(ERole.ROLE_USER)
+					.orElseThrow(() -> new RuntimeException("Error: Role tidak ditemukan"));
+			roles.add(userRole);
+		} else {
+			strRoles.forEach(role -> {
+				switch (role) {
+				case "admin":
+					Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN)
+							.orElseThrow(() -> new RuntimeException("Error: Role tidak ditemukan"));
+					roles.add(adminRole);
+					break;
+				default:
+					Role userRole = roleRepository.findByName(ERole.ROLE_USER)
+							.orElseThrow(() -> new RuntimeException("Error: Role tidak ditemukan"));
+					roles.add(userRole);
+				}
+			});
 		}
 
 		user.setRoles(roles);
-
 		userRepository.save(user);
 
-		Response successResponse = new Response("200", "OK", "User berhasil didaftarkan");
-		return ResponseEntity.status(HttpStatus.OK).body(successResponse);
+		Agency agency = new Agency(signupCustomRequest.getCode(), signupCustomRequest.getDetails(),
+				signupCustomRequest.getName(), user);
+		agencyRepository.save(agency);
+
+		return ResponseEntity.ok(new MessageResponse("User berhasil didaftarkan"));
 	}
 
-	@PutMapping("/update")
-	@ApiOperation(value = "update", authorizations = { @Authorization(value = "apiKey") })
+	@PutMapping("/{id}")
+	@ApiOperation(value = "", authorizations = { @Authorization(value = "apiKey") })
 	@PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-	public ResponseEntity<?> updateUser(@Valid @RequestBody UpdateUserRequest updateUserRequest) {
-
-		String firstName = updateUserRequest.getFirstName();
-		String lastName = updateUserRequest.getLastName();
-		String mobileNumber = updateUserRequest.getMobileNumber();
-
-		if (firstName == null || lastName == null || mobileNumber == null || firstName.equals("") || lastName.equals("")
-				|| mobileNumber.equals("")) {
-
-			String errorDetails = "Pastikan field tidak kosong";
-			Response errorResponse = new Response("400", "Bad Request", errorDetails);
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
-		}
-
-		UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		String username = userDetails.getUsername();
-
-		User user = userServiceImpl.getUserByUsername(username);
-
+	public ResponseEntity<?> updateUser(@PathVariable(value = "id") Long id,
+			@Valid @RequestBody UserCustomRequest userCustomRequest) {
+		User user = userRepository.findById(id).get();
 		if (user == null) {
-			Response errorResponse = new Response("404", "Not Found", "Data tidak ada");
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+			return ResponseEntity.notFound().build();
+		}
+		user.setFirstName(userCustomRequest.getFirstName());
+		user.setLastName(userCustomRequest.getLastName());
+		user.setMobileNumber(userCustomRequest.getMobileNumber());
+
+		User updatedUser = userRepository.save(user);
+
+		return ResponseEntity.ok(updatedUser);
+	}
+
+	@PutMapping("/password/{id}")
+	@ApiOperation(value = "", authorizations = { @Authorization(value = "apiKey") })
+	@PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+	public ResponseEntity<?> updatePassword(@PathVariable(value = "id") Long id,
+			@Valid @RequestBody UserPasswordRequest userPasswordRequest) {
+		User user = userRepository.findById(id).get();
+		if (user == null) {
+			return ResponseEntity.notFound().build();
 		}
 
-		user.setFirstName(firstName);
-		user.setLastName(lastName);
-		user.setMobileNumber(mobileNumber);
+		user.setPassword(encoder.encode(userPasswordRequest.getPassword()));
 
-		userRepository.save(user);
+		User updatedUser = userRepository.save(user);
 
-		Response successResponse = new Response("200", "OK", "Data berhasil diupdate");
-		return ResponseEntity.status(HttpStatus.OK).body(successResponse);
+		return ResponseEntity.ok(updatedUser);
+	}
+
+	@GetMapping("/view")
+	@PreAuthorize("hasRole('ADMIN')")
+	@ApiOperation(value = "", authorizations = { @Authorization(value = "apiKey") })
+	public ResponseEntity<?> getAllUser() {
+		return ResponseEntity.ok(userRepository.findAll());
+	}
+
+	@DeleteMapping("/{id}")
+	@ApiOperation(value = "", authorizations = { @Authorization(value = "apiKey") })
+	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	public ResponseEntity<?> deleteUser(@PathVariable(value = "id") Long id) {
+
+		try {
+			userRepository.deleteById(id);
+			String result = "Berhasil menghapus user dengan ID: " + id;
+			return ResponseEntity.ok(result);
+		} catch (Exception e) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e.getCause());
+		}
 	}
 }

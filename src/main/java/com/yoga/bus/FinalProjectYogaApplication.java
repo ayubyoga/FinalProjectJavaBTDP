@@ -18,16 +18,10 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @EnableSwagger2
 public class FinalProjectYogaApplication {
 
-	@Override
-	public String toString() {
-		return "FinalProjectYogaApplication [postsApi()=" + postsApi() + ", apiKey()=" + apiKey() + ", getClass()="
-				+ getClass() + ", hashCode()=" + hashCode() + ", toString()=" + super.toString() + "]";
-	}
-
 	public static void main(String[] args) {
 		SpringApplication.run(FinalProjectYogaApplication.class, args);
 	}
-
+	
 	@Bean
 	public Docket postsApi() {
 		return new Docket(DocumentationType.SWAGGER_2).select()
@@ -38,5 +32,4 @@ public class FinalProjectYogaApplication {
 	private ApiKey apiKey() {
 		return new ApiKey("apiKey", "Authorization", "header");
 	}
-
 }

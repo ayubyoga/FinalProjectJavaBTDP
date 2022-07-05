@@ -1,4 +1,4 @@
-package com.yoga.bus.security.jwt;
+package com.yoga.bus.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -15,7 +15,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import com.yoga.bus.security.services.UserDetailsServiceImpl;
+import com.yoga.bus.security.jwt.AuthEntryPointJwt;
+import com.yoga.bus.security.jwt.AuthTokenFilter;
+import com.yoga.bus.service.UserDetailsServiceImpl;
 
 @Configuration
 @EnableWebSecurity
@@ -29,7 +31,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	private AuthEntryPointJwt unauthorizedHandler;
 
 	@Bean
-	AuthTokenFilter authenticationJwtTokenFilter() {
+	public AuthTokenFilter authenticationJwtTokenFilter() {
 		return new AuthTokenFilter();
 	}
 
@@ -45,7 +47,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	}
 
 	@Bean
-	PasswordEncoder passwordEncoder() {
+	public PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
 	}
 
@@ -62,6 +64,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	@Override
 	public void configure(WebSecurity web) throws Exception {
 		web.ignoring().antMatchers("/v2/api-docs", "/configuration/ui", "/swagger-resources/**", "/configuration/",
-				"/swagger-ui.html", "/webjars/**", "/");
+				"/swagger-ui.html", "/webjars/**");
+
 	}
 }

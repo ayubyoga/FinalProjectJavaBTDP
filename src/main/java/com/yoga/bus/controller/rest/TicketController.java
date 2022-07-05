@@ -1,20 +1,22 @@
 package com.yoga.bus.controller.rest;
 
-import java.util.ArrayList;
 import java.util.List;
 
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import com.yoga.bus.models.Ticket;
-import com.yoga.bus.payload.response.Response;
-import com.yoga.bus.payload.response.TicketResponse;
-import com.yoga.bus.service.impl.TicketServiceImpl;
-import com.yoga.bus.service.impl.TripScheduleServiceImpl;
-import com.yoga.bus.service.impl.UserServiceImpl;
+import com.yoga.bus.models.TripSchedule;
+import com.yoga.bus.models.User;
+import com.yoga.bus.payload.request.TicketRequest;
+import com.yoga.bus.payload.response.MessageResponse;
+import com.yoga.bus.repository.TicketRepository;
+import com.yoga.bus.repository.TripScheduleRepository;
+import com.yoga.bus.repository.UserRepository;
 
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.Authorization;
@@ -25,82 +27,61 @@ import io.swagger.annotations.Authorization;
 public class TicketController {
 
 	@Autowired
-	TicketServiceImpl ticketServiceImpl;
+	TicketRepository ticketRepository;
 
 	@Autowired
-	UserServiceImpl userServiceImpl;
+	UserRepository userRepository;
 
 	@Autowired
-	TripScheduleServiceImpl tripScheduleServiceImpl;
+	TripScheduleRepository tripScheduleRepository;
 
-	@GetMapping("")
-	@ApiOperation(value = "", authorizations = {@Authorization(value = "apiKey") })
+	@GetMapping("/")
+	@ApiOperation(value = "", authorizations = { @Authorization(value = "apiKey") })
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<?> getAllTicket() {
-
-		List<Ticket> tickets = ticketServiceImpl.getAllTicket();
-
-		if(tickets.size() != 0) {
-			List<TicketResponse> ticketResponses = new ArrayList<>();
-			
-			for (Ticket ticket : tickets) {
-				ticketResponses.add(new TicketResponse(ticket.getId(), ticket.getSeatNumber(),
-						ticket.getCancellable(), ticket.getJourneyDate(), ticket.getPassenger().getId(),
-						ticket.getTripSchedule().getId()));
-			}
-			
-			return ResponseEntity.status(HttpStatus.OK).body(ticketResponses);
-		} else {
-			Response errorResponse = new Response("404", "Not Found", "Tidak ada ticket yang tersimpan");
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
-		}
+	public ResponseEntity<?> getAll() {
+		List<Ticket> dataArr=ticketRepository.findAll();
+		return ResponseEntity.ok(new MessageResponse<Ticket>(true, "Berhasil", dataArr));
 	}
 
 	@GetMapping("/{id}")
-	@ApiOperation(value = "", authorizations = {@Authorization(value = "apiKey") })
+	@ApiOperation(value = "", authorizations = { @Authorization(value = "apiKey") })
+	@PreAuthorize("hasAnyRole('ADMIN','USER')")
+	public ResponseEntity<?> getTicketById(@PathVariable(value = "id") Long id) {
+		Ticket ticket = ticketRepository.findById(id).get();
+			return ResponseEntity.ok(new MessageResponse<Ticket>(true, "Berhasil", ticket));
+	}
+
+	@PostMapping("/")
+	@ApiOperation(value = "", authorizations = { @Authorization(value = "apiKey") })
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<?> getTicketById(@PathVariable Long id) {
+	public ResponseEntity<?> addTicket(@Valid @RequestBody TicketRequest ticketRequest) {
+		User user = userRepository.findById(ticketRequest.getPassegerId()).get();
+		TripSchedule tripSchedule = tripScheduleRepository.findById(ticketRequest.getTripScheduleId()).get();
+		Ticket ticket = new Ticket(ticketRequest.getSeatNumber(), ticketRequest.getCancellable(),
+				ticketRequest.getJourneyDate(), user, tripSchedule);
+		ticketRepository.save(ticket);
+		return ResponseEntity
+				.ok(new MessageResponse<Ticket>(true, "Berhasil menambahkan data", ticket));
+	}
+	
+	@DeleteMapping("/{id}")
+	@ApiOperation(value = "", authorizations = { @Authorization(value = "apiKey") })
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<?> deleteTicket(@PathVariable(value = "id") Long id) {
+		String result = "";
+		try {
+			ticketRepository.findById(id).get();
 
-		Ticket ticket = ticketServiceImpl.getTicketById(id);
+			result = "Berhasil menghapus data dengan ID: " + id;
+			ticketRepository.deleteById(id);
 
-		if(ticket.getId() != null) {
-			TicketResponse ticketResponse = new TicketResponse(ticket.getId(), ticket.getSeatNumber(),
-					ticket.getCancellable(), ticket.getJourneyDate(),
-					ticket.getPassenger().getId(), ticket.getTripSchedule().getId());
-		
-			return ResponseEntity.status(HttpStatus.OK).body(ticketResponse);
-		} else {
-			Response errorResponse = new Response("404", "Not Found", "Data ticket tidak ditemukan");
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+			return ResponseEntity.ok(new MessageResponse<Ticket>(true, result));
+		} catch (Exception e) {
+			result = "Data dengan ID: " + id + " tidak ditemukan, silahkan masukkan ID yang valid";
+			return ResponseEntity.ok(new MessageResponse<Ticket>(false, result));
 		}
 	}
 
-	@GetMapping("/trip-schedule/{tripScheduleId}")
-	@ApiOperation(value = "", authorizations = {@Authorization(value = "apiKey") })
-	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<?> getAllTicketByTripScheduleId(@PathVariable Long tripScheduleId) {
 
-		if(tripScheduleServiceImpl.getTripScheduleById(tripScheduleId).getId() != tripScheduleId) {
-			Response errorResponse = new Response("404", "Not Found", "Data trip schedule tidak ditemukan");
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
-		}
-
-		List<Ticket> tickets = ticketServiceImpl.getAllTicketByTripScheduleId(tripScheduleId);
-
-		if(tickets.size() != 0) {
-			List<TicketResponse> ticketResponses = new ArrayList<>();
-			
-			for (Ticket ticket : tickets) {
-				ticketResponses.add(new TicketResponse(ticket.getId(), ticket.getSeatNumber(), ticket.getCancellable(),
-						ticket.getJourneyDate(), ticket.getPassenger().getId(),
-						ticket.getTripSchedule().getId()));
-			}
-			
-			return ResponseEntity.status(HttpStatus.OK).body(ticketResponses);
-		} else {
-			Response errorResponse = new Response("404", "Not Found", "Tidak ada ticket yang dipesan"
-					+ " dari trip schedule tersebut");
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
-		}
-	}
 }
+

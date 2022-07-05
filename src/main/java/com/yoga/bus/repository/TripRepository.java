@@ -4,12 +4,9 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.stereotype.Repository;
-
 import com.yoga.bus.models.Stop;
 import com.yoga.bus.models.Trip;
 
-@Repository
 public interface TripRepository extends JpaRepository<Trip, Long> {
 	List<Trip> findAllBySourceStopAndDestStop(Stop sourceStop, Stop destStop);
 
@@ -25,19 +22,9 @@ public interface TripRepository extends JpaRepository<Trip, Long> {
 
 	List<Trip> findByAgency(String agency);
 
-	@Query(value = "SELECT DISTINCT * FROM trip WHERE source_stop_id = :sourceStop"
-			+ " AND dest_stop_id = :destStop", nativeQuery = true)
+	@Query(value = "SELECT DISTINCT * FROM trip WHERE source_stop_id = :sourceStop AND dest_stop_id = :destStop", nativeQuery = true)
 	List<Trip> findTripsByStops(String sourceStop, String destStop);
 
-	@Query(value = "SELECT * FROM trip WHERE agency_id = :agencyId", nativeQuery = true)
-	List<Trip> findByAgencyId(Long agencyId);
-
-	@Query(value = "SELECT * FROM trip WHERE bus_id = :busId", nativeQuery = true)
-	List<Trip> findByBusId(Long busId);
-
-	@Query(value = "SELECT * FROM trip WHERE source_stop_id = :sourceStopId", nativeQuery = true)
-	List<Trip> findBySourceStopId(Long sourceStopId);
-
-	@Query(value = "SELECT * FROM trip WHERE dest_stop_id = :destStopId", nativeQuery = true)
-	List<Trip> findByDestStopId(Long destStopId);
+	@Query(value = "SELECT * FROM trip WHERE agency_id = :id", nativeQuery = true)
+	List<Trip> findByAgencyId(Long id);
 }
