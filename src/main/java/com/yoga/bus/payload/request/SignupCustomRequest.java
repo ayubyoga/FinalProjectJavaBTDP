@@ -10,35 +10,35 @@ public class SignupCustomRequest {
 	@NotBlank
 	@Size(min = 3, max = 50)
 	private String username;
-
+	
 	@NotBlank
 	@Size(max = 50)
 	@Email
 	private String email;
-
+	
 	@NotBlank
 	@Size(max = 120)
 	private String firstName;
-
+	
 	@NotBlank
 	@Size(max = 120)
 	private String lastName;
-
+	
 	@NotBlank
 	@Size(max = 120)
 	private String mobileNumber;
-
+	
 	private Set<String> role;
-
+	
 	@NotBlank
 	@Size(min = 6, max = 40)
 	private String password;
 
-	private String code;
+    private String code;
 
-	private String details;
+    private String details;
 
-	private String name;
+    private String name;
 
 	public String getUsername() {
 		return username;
@@ -119,5 +119,4 @@ public class SignupCustomRequest {
 	public void setName(String name) {
 		this.name = name;
 	}
-
 }

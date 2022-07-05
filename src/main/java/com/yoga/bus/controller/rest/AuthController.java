@@ -19,13 +19,12 @@ import com.yoga.bus.payload.response.JwtResponse;
 import com.yoga.bus.repository.RoleRepository;
 import com.yoga.bus.repository.UserRepository;
 import com.yoga.bus.security.jwt.JwtUtils;
-import com.yoga.bus.service.UserDetailsImpl;
+import com.yoga.bus.security.services.UserDetailsImpl;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api")
 public class AuthController {
-
 	@Autowired
 	AuthenticationManager authenticationManager;
 

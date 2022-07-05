@@ -1,5 +1,8 @@
 package com.yoga.bus.payload.request;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+
 import io.swagger.annotations.ApiModelProperty;
 
 public class BusRequest {
@@ -12,15 +15,18 @@ public class BusRequest {
 
 	private String make;
 
-	@ApiModelProperty(hidden = true)
 	private long agencyId;
 
-	public Long getId() {
-		return id;
+	public BusRequest() {
 	}
 
-	public void setId(Long id) {
+	public BusRequest(Long id, @NotBlank String code, @NotNull int capacity, @NotBlank String make,
+			@NotBlank Long agencyId) {
 		this.id = id;
+		this.code = code;
+		this.capacity = capacity;
+		this.make = make;
+		this.agencyId = agencyId;
 	}
 
 	public String getCode() {
@@ -54,5 +60,4 @@ public class BusRequest {
 	public void setAgencyId(long agencyId) {
 		this.agencyId = agencyId;
 	}
-
 }

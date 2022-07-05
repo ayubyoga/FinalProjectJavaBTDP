@@ -6,17 +6,21 @@ import java.util.List;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.yoga.bus.models.Agency;
 import com.yoga.bus.models.User;
 import com.yoga.bus.payload.request.AgencyRequest;
 import com.yoga.bus.payload.response.MessageResponse;
+import com.yoga.bus.payload.response.ResponseHandler;
 import com.yoga.bus.repository.AgencyRepository;
 import com.yoga.bus.repository.BusRepository;
 import com.yoga.bus.repository.UserRepository;
+import com.yoga.bus.service.AgencyService;
 
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.Authorization;
@@ -35,78 +39,72 @@ public class AgencyController {
 	@Autowired
 	BusRepository busRepository;
 
-	@GetMapping("/")
-	@ApiOperation(value = "", authorizations = { @Authorization(value = "apiKey") })
-	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<?> getAll() {
-		List<AgencyRequest> dataArrResult = new ArrayList<>();
-		for (Agency dataArr : agencyRepository.findAll()) {
-			dataArrResult.add(new AgencyRequest(dataArr.getId(), dataArr.getCode(), dataArr.getName(),
-					dataArr.getDetails(), dataArr.getOwner().getId()));
-		}
-		return ResponseEntity.ok(new MessageResponse<AgencyRequest>(true, "Berhasil", dataArrResult));
-	}
-
-	@GetMapping("/{id}")
-	@ApiOperation(value = "", authorizations = { @Authorization(value = "apiKey") })
-	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<?> getAgencyById(@PathVariable(value = "id") Long id) {
-		Agency agency = agencyRepository.findById(id).get();
-		if (agency == null) {
-			return ResponseEntity.notFound().build();
-		} else {
-			AgencyRequest dataResult = new AgencyRequest(agency.getId(), agency.getCode(), agency.getName(),
-					agency.getDetails(), agency.getOwner().getId());
-			return ResponseEntity.ok(new MessageResponse<AgencyRequest>(true, "Berhasil", dataResult));
-		}
-	}
+	@Autowired
+	AgencyService agencyService;
 
 	@PostMapping("/")
 	@ApiOperation(value = "", authorizations = { @Authorization(value = "apiKey") })
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<?> addAgency(@Valid @RequestBody AgencyRequest agencyRequest) {
 		User user = userRepository.findById(agencyRequest.getOwner()).get();
-		Agency agency = new Agency(agencyRequest.getCode(), agencyRequest.getDetails(), agencyRequest.getName(), user);
+		Agency agency = new Agency(
+				agencyRequest.getCode(), 
+				agencyRequest.getDetails(), 
+				agencyRequest.getName(), 
+				user);
 		return ResponseEntity
-				.ok(new MessageResponse<Agency>(true, "Berhasil menambahkan data", agencyRepository.save(agency)));
+				.ok(new MessageResponse<Agency>(true, "Success Adding Data", agencyRepository.save(agency)));
+	}
+	
+	@GetMapping("/")
+	@ApiOperation(value = "", authorizations = { @Authorization(value = "apiKey") })
+	@PreAuthorize("hasAnyRole('ADMIN','USER')")
+	public ResponseEntity<?> getAll() {
+		List<AgencyRequest> dataArrResult = new ArrayList<>();
+		for (Agency dataArr : agencyRepository.findAll()) {
+			dataArrResult.add(new AgencyRequest(dataArr.getId(), dataArr.getCode(), dataArr.getName(),
+					dataArr.getDetails(), dataArr.getOwner().getId()));
+		}
+		return ResponseEntity.ok(new MessageResponse<AgencyRequest>(true, "Success Retrieving Data", dataArrResult));
+	}
+
+
+	@GetMapping("/{id}")
+	@ApiOperation(value = "get agency", authorizations = { @Authorization(value = "apiKey") })
+	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	public ResponseEntity<?> getAgency(@PathVariable(value = "id") Long id) {
+
+		try {
+			Agency agency = agencyRepository.findById(id).get();
+			return ResponseHandler.generateResponse("success", HttpStatus.OK, agency);
+
+		} catch (Exception e) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e.getCause());
+		}
 	}
 
 	@PutMapping("/{id}")
-	@ApiOperation(value = "", authorizations = { @Authorization(value = "apiKey") })
-	@PreAuthorize("hasRole('ADMIN')")
+	@ApiOperation(value = "update agency", authorizations = { @Authorization(value = "apiKey") })
+	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	public ResponseEntity<?> updateAgency(@PathVariable(value = "id") Long id,
-			@Valid @RequestBody AgencyRequest agencyDetail) {
-		Agency agency = agencyRepository.findById(id).get();
-		User user = userRepository.findById(agencyDetail.getOwner()).get();
-		if (agency == null) {
-			return ResponseEntity.notFound().build();
-		}
-		agency.setCode(agencyDetail.getCode());
-		agency.setDetails(agencyDetail.getDetails());
-		agency.setName(agencyDetail.getName());
-		agency.setOwner(user);
+			@Valid @RequestBody AgencyRequest agencyRequest) {
 
-		Agency updatedAgency = agencyRepository.save(agency);
-
-		return ResponseEntity.ok(new MessageResponse<Agency>(true, "Success Updating Data", updatedAgency));
+		Agency agency = agencyService.updatingAgency(id, agencyRequest);
+		return new ResponseEntity<>(agency, HttpStatus.OK);
 	}
 
 	@DeleteMapping("/{id}")
-	@ApiOperation(value = "", authorizations = { @Authorization(value = "apiKey") })
-	@PreAuthorize("hasRole('ADMIN')")
+	@ApiOperation(value = "delete agency", authorizations = { @Authorization(value = "apiKey") })
+	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	public ResponseEntity<?> deleteAgency(@PathVariable(value = "id") Long id) {
-		String result = "";
+
 		try {
-			agencyRepository.findById(id).get();
-
-			result = "Berhasil menghapus data dengan ID: " + id;
 			agencyRepository.deleteById(id);
+			String result = "Success Delete Agency with Id: " + id;
+			return new ResponseEntity<>(result, HttpStatus.OK);
 
-			return ResponseEntity.ok(new MessageResponse<Agency>(true, result));
 		} catch (Exception e) {
-			result = "Data dengan ID: " + id + " Tidak Ditemukan, silahkan masukkan ID yang valid";
-			return ResponseEntity.ok(new MessageResponse<Agency>(false, result));
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e.getCause());
 		}
 	}
-
 }

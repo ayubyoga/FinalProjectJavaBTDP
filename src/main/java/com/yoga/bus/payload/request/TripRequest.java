@@ -3,7 +3,6 @@ package com.yoga.bus.payload.request;
 import io.swagger.annotations.ApiModelProperty;
 
 public class TripRequest {
-	
 	@ApiModelProperty(hidden = true)
 	private Long id;
 
@@ -18,11 +17,6 @@ public class TripRequest {
 	private Long busId;
 
 	private Long agencyId;
-
-	public TripRequest(Long id2, int fare2, int journeyTime2, Long id3, Long id4, Long id5, Long id6) {
-		// TODO Auto-generated constructor stub
-	}
-
 
 	public Long getId() {
 		return id;

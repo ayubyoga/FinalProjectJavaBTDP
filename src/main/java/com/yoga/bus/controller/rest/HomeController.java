@@ -1,4 +1,4 @@
-package com.yoga.bus;
+package com.yoga.bus.controller.rest;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 

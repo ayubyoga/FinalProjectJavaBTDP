@@ -15,6 +15,8 @@ public class AgencyRequest {
 	private String details;
 
 	private Long owner;
+	
+	
 
 	public AgencyRequest() {
 		super();

@@ -47,14 +47,17 @@ public class UserController {
 
 	@PostMapping("/signup")
 	public ResponseEntity<?> registerUser(@Valid @RequestBody SignupCustomRequest signupCustomRequest) {
-		if (userRepository.existsByUsername(signupCustomRequest.getUsername())) {
-			return ResponseEntity.badRequest().body(new MessageResponse("Error: Username sudah digunakan"));
+		
+		Boolean checkuser = userRepository.existsByUsername(signupCustomRequest.getUsername());
+		if (checkuser) {
+			return ResponseEntity.badRequest().body(new MessageResponse("Error: Username is already taken!"));
 		}
 
 		if (userRepository.existsByEmail(signupCustomRequest.getEmail())) {
-			return ResponseEntity.badRequest().body(new MessageResponse("Error: Email sudah digunakan"));
+			return ResponseEntity.badRequest().body(new MessageResponse("Error: Email is already in use!"));
 		}
 
+		// Create new user's account
 		User user = new User(signupCustomRequest.getFirstName(), signupCustomRequest.getLastName(),
 				signupCustomRequest.getMobileNumber(), signupCustomRequest.getUsername(),
 				signupCustomRequest.getEmail(), encoder.encode(signupCustomRequest.getPassword()));
@@ -64,19 +67,19 @@ public class UserController {
 
 		if (strRoles == null) {
 			Role userRole = roleRepository.findByName(ERole.ROLE_USER)
-					.orElseThrow(() -> new RuntimeException("Error: Role tidak ditemukan"));
+					.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
 			roles.add(userRole);
 		} else {
 			strRoles.forEach(role -> {
 				switch (role) {
-				case "admin":
+				case "ROLE_ADMIN":
 					Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN)
-							.orElseThrow(() -> new RuntimeException("Error: Role tidak ditemukan"));
+							.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
 					roles.add(adminRole);
 					break;
 				default:
 					Role userRole = roleRepository.findByName(ERole.ROLE_USER)
-							.orElseThrow(() -> new RuntimeException("Error: Role tidak ditemukan"));
+							.orElseThrow(() -> new RuntimeException("Error: Role is not found."));
 					roles.add(userRole);
 				}
 			});
@@ -89,7 +92,7 @@ public class UserController {
 				signupCustomRequest.getName(), user);
 		agencyRepository.save(agency);
 
-		return ResponseEntity.ok(new MessageResponse("User berhasil didaftarkan"));
+		return ResponseEntity.ok(new MessageResponse<>(true,"User registered successfully!",user));
 	}
 
 	@PutMapping("/{id}")
@@ -126,22 +129,22 @@ public class UserController {
 
 		return ResponseEntity.ok(updatedUser);
 	}
-
+	
 	@GetMapping("/view")
 	@PreAuthorize("hasRole('ADMIN')")
 	@ApiOperation(value = "", authorizations = { @Authorization(value = "apiKey") })
 	public ResponseEntity<?> getAllUser() {
 		return ResponseEntity.ok(userRepository.findAll());
 	}
-
+	
 	@DeleteMapping("/{id}")
-	@ApiOperation(value = "", authorizations = { @Authorization(value = "apiKey") })
+	@ApiOperation(value = "delete user", authorizations = { @Authorization(value = "apiKey") })
 	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	public ResponseEntity<?> deleteUser(@PathVariable(value = "id") Long id) {
 
 		try {
 			userRepository.deleteById(id);
-			String result = "Berhasil menghapus user dengan ID: " + id;
+			String result = "Success Delete User with Id: " + id;
 			return ResponseEntity.ok(result);
 		} catch (Exception e) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e.getCause());

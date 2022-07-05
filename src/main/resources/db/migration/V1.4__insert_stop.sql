@@ -1,4 +1,3 @@
-
 INSERT INTO stop VALUES
 (1, '1-2', 'Teluk', 'Karang'),
 (2, '1-8', 'Cimeng', 'Sukaraja 1-8'),

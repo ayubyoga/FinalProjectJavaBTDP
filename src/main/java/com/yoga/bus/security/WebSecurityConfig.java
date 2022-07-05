@@ -17,7 +17,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import com.yoga.bus.security.jwt.AuthEntryPointJwt;
 import com.yoga.bus.security.jwt.AuthTokenFilter;
-import com.yoga.bus.service.UserDetailsServiceImpl;
+import com.yoga.bus.security.services.UserDetailsServiceImpl;
 
 @Configuration
 @EnableWebSecurity

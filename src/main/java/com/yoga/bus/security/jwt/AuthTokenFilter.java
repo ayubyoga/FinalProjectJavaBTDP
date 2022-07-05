@@ -17,7 +17,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.yoga.bus.service.UserDetailsServiceImpl;
+import com.yoga.bus.security.services.UserDetailsServiceImpl;
 
 public class AuthTokenFilter extends OncePerRequestFilter {
 	@Autowired
@@ -59,4 +59,5 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
 		return null;
 	}
+
 }

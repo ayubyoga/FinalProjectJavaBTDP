@@ -78,5 +78,5 @@ public class TripSchedule {
 	public void setAvailableSeats(int availableSeats) {
 		this.availableSeats = availableSeats;
 	}
-	
+
 }

@@ -8,6 +8,7 @@ import com.yoga.bus.models.Stop;
 import com.yoga.bus.models.Trip;
 
 public interface TripRepository extends JpaRepository<Trip, Long> {
+	
 	List<Trip> findAllBySourceStopAndDestStop(Stop sourceStop, Stop destStop);
 
 	List<Trip> findByFare(Integer fare);

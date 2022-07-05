@@ -15,12 +15,12 @@ public class MessageResponse<T> {
 		this.message = message;
 	}
 
-	public MessageResponse(Boolean success, String message, List<T> dataArr) {
+	public MessageResponse(Boolean success, String message, List<T> data) {
 		this.success = success;
 		
 		this.message = message;
 		
-		this.data = dataArr;
+		this.data = data;
 	}
 
 	public MessageResponse(Boolean success, String message, T object) {

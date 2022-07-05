@@ -10,6 +10,7 @@ import com.yoga.bus.models.TripSchedule;
 
 @Repository
 public interface TripScheduleRepository extends JpaRepository<TripSchedule, Long> {
+	
 	List<TripSchedule> findAllByTripDate(String tripDate);
 	
 	List<TripSchedule> findByTripDate(String tripDate);

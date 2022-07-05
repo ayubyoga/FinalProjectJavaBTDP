@@ -8,11 +8,11 @@ public class Stop {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-
+	
 	private String code;
-
+	
 	private String name;
-
+	
 	private String detail;
 
 	public Long getId() {
@@ -46,5 +46,7 @@ public class Stop {
 	public void setDetail(String detail) {
 		this.detail = detail;
 	}
-
+	
+	
+	
 }

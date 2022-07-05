@@ -1,11 +1,9 @@
 package com.yoga.bus.payload.request;
 
-import com.yoga.bus.models.User;
-
 import io.swagger.annotations.ApiModelProperty;
 
 public class BusCustomRequest {
-
+	
 	@ApiModelProperty(hidden = true)
 	private Long id;
 
@@ -15,8 +13,7 @@ public class BusCustomRequest {
 
 	private String make;
 
-	@ApiModelProperty(hidden = true)
-	private User agencyId;
+	private Long agencyId;
 
 	public Long getId() {
 		return id;
@@ -50,15 +47,15 @@ public class BusCustomRequest {
 		this.make = make;
 	}
 
-	public User getAgencyId() {
+	public Long getAgencyId() {
 		return agencyId;
 	}
 
-	public void setAgencyId(User agencyId) {
+	public void setAgencyId(Long agencyId) {
 		this.agencyId = agencyId;
 	}
 
-	public BusCustomRequest(Long id, String code, int capacity, String make, User agencyId) {
+	public BusCustomRequest(Long id, String code, int capacity, String make, Long agencyId) {
 		super();
 		this.id = id;
 		this.code = code;
@@ -71,5 +68,5 @@ public class BusCustomRequest {
 		super();
 		// TODO Auto-generated constructor stub
 	}
-
+	
 }

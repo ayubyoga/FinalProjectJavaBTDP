@@ -1,5 +1,6 @@
 package com.yoga.bus.controller.rest;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.validation.Valid;
@@ -18,8 +19,8 @@ import com.yoga.bus.repository.TicketRepository;
 import com.yoga.bus.repository.TripScheduleRepository;
 import com.yoga.bus.repository.UserRepository;
 
-import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.Authorization;
+import io.swagger.annotations.ApiOperation;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -34,13 +35,17 @@ public class TicketController {
 
 	@Autowired
 	TripScheduleRepository tripScheduleRepository;
-
+	
 	@GetMapping("/")
 	@ApiOperation(value = "", authorizations = { @Authorization(value = "apiKey") })
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<?> getAll() {
-		List<Ticket> dataArr=ticketRepository.findAll();
-		return ResponseEntity.ok(new MessageResponse<Ticket>(true, "Berhasil", dataArr));
+		List<TicketRequest> dataArrResult = new ArrayList<>();
+		for (Ticket dataArr : ticketRepository.findAll()) {
+			dataArrResult.add(new TicketRequest(dataArr.getId(), dataArr.getCancellable(), dataArr.getJourneyDate(),
+					dataArr.getSeatNumber(), dataArr.getPassenger().getId(), dataArr.getTripSchedule().getId()));
+		}
+		return ResponseEntity.ok(new MessageResponse<TicketRequest>(true, "Success Retrieving Data", dataArrResult));
 	}
 
 	@GetMapping("/{id}")
@@ -48,20 +53,34 @@ public class TicketController {
 	@PreAuthorize("hasAnyRole('ADMIN','USER')")
 	public ResponseEntity<?> getTicketById(@PathVariable(value = "id") Long id) {
 		Ticket ticket = ticketRepository.findById(id).get();
-			return ResponseEntity.ok(new MessageResponse<Ticket>(true, "Berhasil", ticket));
+		if (ticket == null) {
+			return ResponseEntity.notFound().build();
+		} else {
+			TicketRequest dataResult = new TicketRequest(ticket.getId(), ticket.getCancellable(),
+					ticket.getJourneyDate(), ticket.getSeatNumber(), ticket.getPassenger().getId(),
+					ticket.getTripSchedule().getId());
+			return ResponseEntity.ok(new MessageResponse<TicketRequest>(true, "Success Retrieving Data", dataResult));
+		}
 	}
-
-	@PostMapping("/")
+	
+	@PutMapping("/{id}")
 	@ApiOperation(value = "", authorizations = { @Authorization(value = "apiKey") })
 	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<?> addTicket(@Valid @RequestBody TicketRequest ticketRequest) {
-		User user = userRepository.findById(ticketRequest.getPassegerId()).get();
-		TripSchedule tripSchedule = tripScheduleRepository.findById(ticketRequest.getTripScheduleId()).get();
-		Ticket ticket = new Ticket(ticketRequest.getSeatNumber(), ticketRequest.getCancellable(),
-				ticketRequest.getJourneyDate(), user, tripSchedule);
-		ticketRepository.save(ticket);
-		return ResponseEntity
-				.ok(new MessageResponse<Ticket>(true, "Berhasil menambahkan data", ticket));
+	public ResponseEntity<?> updateTicket(@PathVariable(value = "id") Long id,
+			@Valid @RequestBody TicketRequest ticketDetail) {
+		Ticket ticket = ticketRepository.findById(id).get();
+		User user = userRepository.findById(ticketDetail.getPassegerId()).get();
+		TripSchedule tripSchedule = tripScheduleRepository.findById(ticketDetail.getTripScheduleId()).get();
+		if (ticket == null) {
+			return ResponseEntity.notFound().build();
+		}
+		ticket.setCancellable(ticketDetail.getCancellable());
+		ticket.setJourneyDate(ticketDetail.getJourneyDate());
+		ticket.setSeatNumber(ticketDetail.getSeatNumber());
+		ticket.setPassenger(user);
+		ticket.setTripSchedule(tripSchedule);
+
+		return ResponseEntity.ok(new MessageResponse<Ticket>(true, "Success Updating Data"));
 	}
 	
 	@DeleteMapping("/{id}")
@@ -72,16 +91,15 @@ public class TicketController {
 		try {
 			ticketRepository.findById(id).get();
 
-			result = "Berhasil menghapus data dengan ID: " + id;
+			result = "Success Deleting Data with Id: " + id;
 			ticketRepository.deleteById(id);
 
 			return ResponseEntity.ok(new MessageResponse<Ticket>(true, result));
 		} catch (Exception e) {
-			result = "Data dengan ID: " + id + " tidak ditemukan, silahkan masukkan ID yang valid";
+			result = "Data with Id: " + id + " Not Found";
 			return ResponseEntity.ok(new MessageResponse<Ticket>(false, result));
 		}
 	}
 
 
 }
-
