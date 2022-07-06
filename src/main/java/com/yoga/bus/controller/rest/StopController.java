@@ -57,12 +57,12 @@ public class StopController {
 		try {
 			stopRepository.findById(id).get();
 
-			result = "Success Deleting Data with Id: " + id;
+			result = "Berhasil menghapus data dengan ID: " + id;
 			stopRepository.deleteById(id);
 
 			return ResponseEntity.ok(new MessageResponse<Stop>(true, result));
 		} catch (Exception e) {
-			result = "Data with Id: " + id + " Not Found";
+			result = "Data dengan Id: " + id + " tidak ditemukan, silahkan masukkan Id yang valid";
 			return ResponseEntity.ok(new MessageResponse<Stop>(false, result));
 		}
 	}

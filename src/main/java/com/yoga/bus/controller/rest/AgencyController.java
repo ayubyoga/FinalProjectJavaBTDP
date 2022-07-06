@@ -53,7 +53,7 @@ public class AgencyController {
 				agencyRequest.getName(), 
 				user);
 		return ResponseEntity
-				.ok(new MessageResponse<Agency>(true, "Success Adding Data", agencyRepository.save(agency)));
+				.ok(new MessageResponse<Agency>(true, "Berhasil menambahkan data", agencyRepository.save(agency)));
 	}
 	
 	@GetMapping("/")
@@ -61,11 +61,11 @@ public class AgencyController {
 	@PreAuthorize("hasAnyRole('ADMIN','USER')")
 	public ResponseEntity<?> getAll() {
 		List<AgencyRequest> dataArrResult = new ArrayList<>();
-		for (Agency dataArr : agencyRepository.findAll()) {
-			dataArrResult.add(new AgencyRequest(dataArr.getId(), dataArr.getCode(), dataArr.getName(),
-					dataArr.getDetails(), dataArr.getOwner().getId()));
+		for (Agency data : agencyRepository.findAll()) {
+			dataArrResult.add(new AgencyRequest(data.getId(), data.getCode(), data.getName(),
+					data.getDetails(), data.getOwner().getId()));
 		}
-		return ResponseEntity.ok(new MessageResponse<AgencyRequest>(true, "Success Retrieving Data", dataArrResult));
+		return ResponseEntity.ok(new MessageResponse<AgencyRequest>(true, "Berhasil mendapatkan data", dataArrResult));
 	}
 
 
@@ -100,7 +100,7 @@ public class AgencyController {
 
 		try {
 			agencyRepository.deleteById(id);
-			String result = "Success Delete Agency with Id: " + id;
+			String result = "Berhasil menghapus Agency dengan ID: " + id;
 			return new ResponseEntity<>(result, HttpStatus.OK);
 
 		} catch (Exception e) {

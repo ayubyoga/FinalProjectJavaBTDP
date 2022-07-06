@@ -42,6 +42,6 @@ public class ReservationController {
 				ticketRequest.getJourneyDate(), user, tripSchedule);
 		ticketRepository.save(ticket);
 		return ResponseEntity
-			.ok(new MessageResponse<Ticket>(true, "Success Adding Data", ticket));
+			.ok(new MessageResponse<Ticket>(true, "Berhasil menambahkan Data", ticket));
 	}
 }

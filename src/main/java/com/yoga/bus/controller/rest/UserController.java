@@ -144,7 +144,7 @@ public class UserController {
 
 		try {
 			userRepository.deleteById(id);
-			String result = "Success Delete User with Id: " + id;
+			String result = "Berhasil menghapus data dengan Id: " + id;
 			return ResponseEntity.ok(result);
 		} catch (Exception e) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e.getCause());

@@ -59,13 +59,13 @@ public class BusController {
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<?> getAll() {
 		List<BusRequest> dataArrResult = new ArrayList<>();
-		for (Bus dataArr : busRepository.findAll()) {
+		for (Bus data : busRepository.findAll()) {
 			dataArrResult.add(new BusRequest(
-					dataArr.getId(),
-					dataArr.getCode(), 
-					dataArr.getCapacity(), 
-					dataArr.getMake(), 
-					dataArr.getAgency().
+					data.getId(),
+					data.getCode(), 
+					data.getCapacity(), 
+					data.getMake(), 
+					data.getAgency().
 					getId()));
 		}
 		return ResponseEntity.ok(new MessageResponse<BusRequest>(true, "Success Retrieving Data", dataArrResult));
@@ -96,7 +96,7 @@ public class BusController {
 		
 		Bus updatedBus = busRepository.save(bus);
 
-		return ResponseEntity.ok(new MessageResponse<Bus>(true, "Success Updating Data", updatedBus));
+		return ResponseEntity.ok(new MessageResponse<Bus>(true, "Berhasil Update Data", updatedBus));
 	}
 	
 	@DeleteMapping("/{id}")
@@ -106,7 +106,7 @@ public class BusController {
 
 		try {
 			busRepository.deleteById(id);
-			String result = "Success Delete Bus with Id: " + id;
+			String result = "Berhasil menghapus data bus dengan ID: " + id;
 			return ResponseEntity.ok(result);
 
 		} catch (Exception e) {

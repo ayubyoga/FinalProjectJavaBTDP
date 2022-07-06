@@ -51,7 +51,7 @@ public class TripScheduleController {
 		Trip trip = tripRepository.findById(tripScheduleRequest.getTrip_detail()).get();
 		TripSchedule trip_schedule = new TripSchedule(tripScheduleRequest.getTripDate(),tripScheduleRequest.getAvailable_seats(), trip);
 		return ResponseEntity
-				.ok(new MessageResponse<TripSchedule>(true, "Success Adding Data", tripScheduleRepository.save(trip_schedule)));
+				.ok(new MessageResponse<TripSchedule>(true, "Berhasil menambahkan data", tripScheduleRepository.save(trip_schedule)));
 	}
 	
 	@GetMapping("/")
@@ -59,11 +59,11 @@ public class TripScheduleController {
 	@PreAuthorize("hasAnyRole('ADMIN','USER')")
 	public ResponseEntity<?> getAll() {
 		List<GetTripScheduleRequest> dataArrResult = new ArrayList<>();
-		for (TripSchedule dataArr : tripScheduleRepository.findAll()) {
-			dataArrResult.add(new GetTripScheduleRequest(dataArr.getId(), dataArr.getAvailableSeats(), dataArr.getTripDate(),
-					dataArr.getTripDetail().getId()));
+		for (TripSchedule data : tripScheduleRepository.findAll()) {
+			dataArrResult.add(new GetTripScheduleRequest(data.getId(), data.getAvailableSeats(), data.getTripDate(),
+					data.getTripDetail().getId()));
 		}
-		return ResponseEntity.ok(new MessageResponse<GetTripScheduleRequest>(true, "Success Retrieving Data", dataArrResult));
+		return ResponseEntity.ok(new MessageResponse<GetTripScheduleRequest>(true, "Berhasil mendapatkan data", dataArrResult));
 	}
 
 	@GetMapping("/{id}")
@@ -76,7 +76,7 @@ public class TripScheduleController {
 		} else {
 			GetTripScheduleRequest dataResult = new GetTripScheduleRequest(trip_schedule.getId(), trip_schedule.getAvailableSeats(),
 					trip_schedule.getTripDate(), trip_schedule.getTripDetail().getId());
-			return ResponseEntity.ok(new MessageResponse<GetTripScheduleRequest>(true, "Success Retrieving Data", dataResult));
+			return ResponseEntity.ok(new MessageResponse<GetTripScheduleRequest>(true, "Berhasil mendapatkan data", dataResult));
 		}
 	}
 
@@ -96,7 +96,7 @@ public class TripScheduleController {
 
 		TripSchedule updatedTripSchedule = tripScheduleRepository.save(trip_schedule);
 
-		return ResponseEntity.ok(new MessageResponse<TripSchedule>(true, "Success Updating Data", updatedTripSchedule));
+		return ResponseEntity.ok(new MessageResponse<TripSchedule>(true, "Berhasil Update Data", updatedTripSchedule));
 	}
 
 	@DeleteMapping("/{id}")
@@ -107,12 +107,12 @@ public class TripScheduleController {
 		try {
 			tripScheduleRepository.findById(id).get();
 
-			result = "Success Deleting Data with Id: " + id;
+			result = "Berhasil menghapus data dengan Id: " + id;
 			tripScheduleRepository.deleteById(id);
 
 			return ResponseEntity.ok(new MessageResponse<TripSchedule>(true, result));
 		} catch (Exception e) {
-			result = "Data with Id: " + id + " Not Found";
+			result = "Data dengan Id: " + id + " tidak ditemukan, silahkan masukkan Id yang valid";
 			return ResponseEntity.ok(new MessageResponse<TripSchedule>(false, result));
 		}
 	}

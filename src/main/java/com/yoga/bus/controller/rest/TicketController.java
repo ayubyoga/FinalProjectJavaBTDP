@@ -41,9 +41,9 @@ public class TicketController {
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<?> getAll() {
 		List<TicketRequest> dataArrResult = new ArrayList<>();
-		for (Ticket dataArr : ticketRepository.findAll()) {
-			dataArrResult.add(new TicketRequest(dataArr.getId(), dataArr.getCancellable(), dataArr.getJourneyDate(),
-					dataArr.getSeatNumber(), dataArr.getPassenger().getId(), dataArr.getTripSchedule().getId()));
+		for (Ticket data : ticketRepository.findAll()) {
+			dataArrResult.add(new TicketRequest(data.getId(), data.getCancellable(), data.getJourneyDate(),
+					data.getSeatNumber(), data.getPassenger().getId(), data.getTripSchedule().getId()));
 		}
 		return ResponseEntity.ok(new MessageResponse<TicketRequest>(true, "Success Retrieving Data", dataArrResult));
 	}
@@ -80,7 +80,7 @@ public class TicketController {
 		ticket.setPassenger(user);
 		ticket.setTripSchedule(tripSchedule);
 
-		return ResponseEntity.ok(new MessageResponse<Ticket>(true, "Success Updating Data"));
+		return ResponseEntity.ok(new MessageResponse<Ticket>(true, "Berhasil Update Data"));
 	}
 	
 	@DeleteMapping("/{id}")
@@ -91,12 +91,12 @@ public class TicketController {
 		try {
 			ticketRepository.findById(id).get();
 
-			result = "Success Deleting Data with Id: " + id;
+			result = "Berhasil menghapus data dengan Id: " + id;
 			ticketRepository.deleteById(id);
 
 			return ResponseEntity.ok(new MessageResponse<Ticket>(true, result));
 		} catch (Exception e) {
-			result = "Data with Id: " + id + " Not Found";
+			result = "Data dengan Id: " + id + " tidak ditemukan, silahkan masukkan Id yang valid";
 			return ResponseEntity.ok(new MessageResponse<Ticket>(false, result));
 		}
 	}

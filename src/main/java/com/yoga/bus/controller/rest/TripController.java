@@ -99,12 +99,12 @@ public class TripController<stop, Get> {
 		try {
 			tripRepository.findById(id).get();
 
-			result = "Success Deleting Data with Id: " + id;
+			result = "Berhasil menghapus data dengan Id: " + id;
 			tripRepository.deleteById(id);
 
 			return ResponseEntity.ok(new MessageResponse<Trip>(true, result));
 		} catch (Exception e) {
-			result = "Data with Id: " + id + " Not Found";
+			result = "Data dengan Id: " + id + " tidak ditemukan, silahkan masukkan Id yang valid";
 			return ResponseEntity.ok(new MessageResponse<Trip>(false, result));
 		}
 	}
